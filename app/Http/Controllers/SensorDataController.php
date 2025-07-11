@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Http;
 use App\Models\RelayControl;
 use Illuminate\Support\Facades\Cache;
+use Carbon\Carbon;
 
 class SensorDataController extends Controller
 {
@@ -58,5 +59,55 @@ class SensorDataController extends Controller
     {
         $latestData = SensorData::orderBy('created_at', 'desc')->first();
         return response()->json($latestData);
+    }
+
+    public function api_data_sensor(Request $req)
+    {
+        try {
+            if($req->isMethod('post')){
+        
+                if($req->submit == 'filter'){
+                    $start_date = $req->start_date;
+                    $end_date = $req->end_date;
+                    
+                    $sensor = SensorData::when($start_date && $end_date,function($query) use ($start_date,$end_date){
+                        
+                        $query->whereBetween('created_at',[$start_date,$end_date]);
+                        
+                    })->when($start_date, function($query) use ($start_date){
+                        
+                        $date = Carbon::parse($start_date);
+                        $datepast = $date->copy()->addDays(7);
+                        $query->whereBetween('created_at',[$start_date,$datepast]);
+                        
+                    })->when($end_date,function($query) use ($end_date){
+                        
+                        $date = Carbon::parse($end_date);
+                        $datepast = $date->copy()->subDays(7);
+                        $query->whereBetween('created_at',[$datepast,$end_date]);
+                        
+                    })->limit(5000)->get();
+                    
+                } else if($req->submit == 'dump'){
+                    SensorData::truncate();
+                    $sensor = SensorData::orderBy('created_at', 'Desc')->take(5000)->get();
+                }
+            } else {
+                $sensor = SensorData::orderBy('created_at', 'Desc')->take(100)->get();
+            }
+            return response()->json([
+                'status' => true,
+                'code' => 2001,
+                'data' => $sensor,
+                'message' => 'Berhasil mengambil data'
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'code' => 5001,
+                'message' => 'Terjadi Kesalahan, tolong hubungi penyedia layanan'
+            ]);
+        }
+        
     }
 }

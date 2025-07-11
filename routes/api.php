@@ -20,4 +20,5 @@ Route::post('/sensor-data', [SensorDataController::class, 'store']);
 Route::get('/sensor-data/latest', [SensorDataController::class, 'latest']);
 Route::post('/relay-control', [RelayControlController::class, 'control']);
 Route::get('/relay-control/latest', [RelayControlController::class, 'latest']);
+Route::get('/data-sensor-kandang', [SensorDataController::class, 'api_data_sensor']);
 
