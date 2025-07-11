@@ -66,7 +66,6 @@ class SensorDataController extends Controller
         try {
             if($req->isMethod('post')){
         
-                if($req->submit == 'filter'){
                     $start_date = $req->start_date;
                     $end_date = $req->end_date;
                     
@@ -87,11 +86,6 @@ class SensorDataController extends Controller
                         $query->whereBetween('created_at',[$datepast,$end_date]);
                         
                     })->limit(5000)->get();
-                    
-                } else if($req->submit == 'dump'){
-                    SensorData::truncate();
-                    $sensor = SensorData::orderBy('created_at', 'Desc')->take(5000)->get();
-                }
             } else {
                 $sensor = SensorData::orderBy('created_at', 'Desc')->take(100)->get();
             }
